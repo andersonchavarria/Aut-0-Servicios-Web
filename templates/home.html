@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <title>Entregable 3</title>
+</head>
+<body>
+    {% if session %}
+    <h1>Bienvenido don {{ session.userinfo.name }}!</h1>
+    <p><a href="/logout" id="qsLogoutBtn">Salir</a></p>
+    <div><pre>{{pretty}}</pre></div> 
+    <form id="updateMetadataForm">
+        <label for="tdocument">Tipo Documento:</label><br />
+        <select id="tdocument" name="tdocument">
+            <option value="RC" {% if session.userinfo.user_metadata and session.userinfo.user_metadata.get('tdocument') == 'RC' %}selected{% endif %}>Registro Civil</option>
+            <option value="TI" {% if session.userinfo.user_metadata and session.userinfo.user_metadata.get('tdocument') == 'TI' %}selected{% endif %}>Tarjeta de Identidad</option>
+            <option value="CC" {% if session.userinfo.user_metadata and session.userinfo.user_metadata.get('tdocument') == 'CC' %}selected{% endif %}>Cédula de Ciudadanía</option>
+            <option value="TE" {% if session.userinfo.user_metadata and session.userinfo.user_metadata.get('tdocument') == 'TE' %}selected{% endif %}>Tarjeta de Extranjería</option>
+        </select>
+        <br /><br />
+
+        <label for="idNumber">Número Documento:</label><br />
+        <input type="text" id="idNumber" name="idNumber" value="{{ session.userinfo.nickname }}" required /><br /><br />
+
+        <label for="address">Dirección:</label><br />
+        <input type="text" id="address" name="address" value="{{ session.userinfo.user_metadata.address if session.userinfo.user_metadata else '' }}" required /><br /><br />
+
+        <label for="phone">Teléfono:</label><br />
+        <input type="text" id="phone" name="phone" value="{{ session.userinfo.user_metadata.phone_number if session.userinfo.user_metadata else '' }}" required /><br /><br />
+
+        <input type="submit" value="Actualizar Metadata" />
+        <label> {{session.userinfo.user_metadata}}</label>
+    </form>
+
+    <script>
+    document.getElementById("updateMetadataForm").addEventListener("submit", async function(event) {
+        event.preventDefault();  // Prevenir el comportamiento por defecto del formulario
+
+        // Obtener los valores del formulario
+        const metadata = {
+            tdocument: document.getElementById("tdocument").value,
+            idNumber: document.getElementById("idNumber").value,
+            address: document.getElementById("address").value,
+            phone: document.getElementById("phone").value
+        };
+
+        // Convertir a JSON
+        const metadataJson = JSON.stringify(metadata);
+
+        console.log("Haciendo petición");
+
+        // Enviar la solicitud al endpoint
+        const response = await fetch('/update-metadata', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: metadataJson, // Usar la cadena JSON aquí
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            alert('Metadata actualizada exitosamente!');
+        } else {
+            alert('Error al actualizar metadata: ' + result.error );
+        }
+    });
+    </script>
+
+    {% else %}
+    <h1 id="profileDropDown">Bienvenido Guess</h1>
+    <p><a href="/login" id="qsLoginBtn">Iniciar sesión</a></p>
+    {% endif %}
+</body>
+</html>
